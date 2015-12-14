@@ -1,6 +1,5 @@
 package game;
 
-import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -27,13 +26,13 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 
 import sun.audio.*;
 
-public class Game extends Canvas implements ApplicationListener {
-	
+public class WotA extends Game{ //abstract class Game implements ApplicationListener
 	private static final int TILE_SIZE = 32;
 	public static final int WIDTH = 320;
 	public static final int HEIGHT = WIDTH / 12 * 9;
@@ -46,20 +45,10 @@ public class Game extends Canvas implements ApplicationListener {
 	public Connection connection;
 	public int floorLevel;
 	private Menu menu = new Menu();
-	private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-	private BufferedImage menuBackground = null;
+	private Pmenu m = new Pmenu();
 	
-	public void init(){
-		BufferedImageLoader loader = new BufferedImageLoader();
-		try{
-			menuBackground = loader.loadImage("/bg.png");
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-	}
-	
+    
     public void create () {
-
     	floorLevel = 0;
     	batch = new SpriteBatch();
         floor = new Floor(floorLevel);
@@ -75,40 +64,25 @@ public class Game extends Canvas implements ApplicationListener {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+
     }
 
     public void render () {
-    	init();
-    	BufferStrategy bs = this.getBufferStrategy(); //Using a buffer strategy is supposed to help performance
-    	if(bs == null){
-    		createBufferStrategy(3);
-    		return;
-    	}
-    	
-    	Graphics g = bs.getDrawGraphics();
-    	g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
-    	g.drawImage(menuBackground, 0, 0, null);
-
-
+    	super.render();
 //    	handleInput();
     	camera.update();
     	batch.setProjectionMatrix(camera.combined); //comment this line out for testing
 
     	batch.begin();
-    	if(State == STATE.GAME){
+
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         floor.drawFloor(batch);
         floor.drawItems(batch);
         floor.drawEnemies(batch);
         player.drawPlayer(batch);
         handleInput();
-    	}else if (State == STATE.MENU){
-			menu.render(g);
-    	}
         batch.end();
 
-    	g.dispose();
-    	bs.show();
     	
     }
     
@@ -117,31 +91,32 @@ public class Game extends Canvas implements ApplicationListener {
     }
 
     public void resize (int width, int height) {
+    	super.resize(width, height);
     	camera.update(); //I don't think this is correct but it seems to work better than having nothing there
     }
 
     public void pause () {
+    	super.pause();
     }
 
     public void resume () {
+    	super.resume();
     }
 
     public void dispose () {
+    	super.dispose();
     }
     
     public static void main(String[] args){
-    	new LwjglApplication(new Game(), "Dungeon Crawler", 1024, 768);
+    	new LwjglApplication(new WotA(), "Wrath of the Ascendant", 1024, 768);
     }
     
-    private enum STATE{ //separate game between playing an pausing for menu
-    	MENU,
-    	GAME
-    };
-    
-    private STATE State = STATE.MENU; //initialize to menu to check
+
     
     private void handleInput() {
-    	if(State == STATE.GAME){
+    	if(Gdx.input.isKeyJustPressed(Keys.TAB)){
+    		((Game) Gdx.app.getApplicationListener()).setScreen(new Pmenu());
+    	}
     	if (Gdx.input.isKeyJustPressed(Keys.UP)){
     		player.movePlayer("up", batch, floor);
     		moveCamera();
@@ -197,8 +172,6 @@ public class Game extends Canvas implements ApplicationListener {
     		player.pickUpItem(floor.itemLocations[player.x1 / TILE_SIZE][player.y1 / TILE_SIZE], floor);
     	}
     	}
-
-    }
     
     //checks if the stairs are underneath the player
     //should update this to ask for confirmation of whether to move a new floor or not
@@ -246,7 +219,6 @@ public class Game extends Canvas implements ApplicationListener {
     		floor.enemiesOnFloor.get(i).AI(player, floor, batch);
     	}
     	
-    	
+    }
     }
 
-}
