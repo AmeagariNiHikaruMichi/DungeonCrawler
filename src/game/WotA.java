@@ -115,7 +115,15 @@ public class WotA extends Game{ //abstract class Game implements ApplicationList
     
     private void handleInput() {
     	if(Gdx.input.isKeyJustPressed(Keys.TAB)){
-    		((Game) Gdx.app.getApplicationListener()).setScreen(new Pmenu());
+    		try {
+    	        Robot robot = new Robot();
+    	        robot.keyPress(KeyEvent.VK_TAB);
+
+    	} catch (AWTException e) {
+    	        e.printStackTrace();
+    	}
+     		((Game) Gdx.app.getApplicationListener()).setScreen(new Pmenu());
+    	}
     	}
     	if (Gdx.input.isKeyJustPressed(Keys.UP)){
     		player.movePlayer("up", batch, floor);
